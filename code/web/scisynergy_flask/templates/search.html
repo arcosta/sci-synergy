@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Scicoll Search{% endblock %}
+
+{%block head%}
+{{super()}}
+{%endblock%}
+
+{%block content%}
+<h1>Scicoll Search</h1>
+
+<hr>
+
+{% if action == 'query' %}
+<form method="POST" action="">
+<h2>Search for researcher's name</h2>
+<input type="text" align="center" name="searchkey" width=30><br>
+<input type="submit" value="Search">
+</form>
+{% else %}
+{%if result is none%}
+<p>No occurences found for <bold>{{queryTerm}}</bold></p>
+{% else %}
+<p>Researchers</p>
+<ul>
+{% for user in result %}
+	<li> <a href="profile/{{user.userid}}">{{user.name}}</a> 
+{% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+<p><a onclick="javascript:history.back()">Voltar</a></p>
+{% endblock %}

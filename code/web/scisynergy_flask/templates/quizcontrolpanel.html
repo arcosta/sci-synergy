@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Relatório do Questionário{% endblock %}
+{% block head %}
+	<meta charset="UTF-8">
+{{super()}}
+{% endblock %}
+
+{% block content %}
+<h2>Relatório do Questionário</h2>
+<hr>
+<p>Total de pesquisadores que responderam: {{ answerscount }}</p>
+
+{% if answersname is not none %}
+	<p>Pesquisadores</p>
+	<ol>
+	{% for author in answersname %}
+		<li>{{author}}
+	{% endfor %}
+	</ol>
+{%endif%}
+
+<hr>
+<p> <b>Questão 1</b></p>
+<ul>
+{%if answers['q1']['yes'] is not none %}
+	<li>Sim: {{answers['q1']['yes']}}
+{%else%}
+	<li>Sim: 0
+{%endif%}
+
+{% if answers.q1.no is not none %}
+	<li>Não: {{answers.q1.no}}
+{%else%}
+	<li>Não: 0
+{%endif%}
+
+{%if answers.q1.get('maybe') is not none %}
+	<li>Parcialmente: {{ answers.q1.maybe }}
+	<ul>
+		{% for ps1text in answers.q1.reason %}
+			<li>{{ps1text}}
+		{% endfor %}
+	</ul>
+{%else%}
+	<li>Parcialmente: 0
+{%endif%}
+</ul>
+{%if answers.q1.get('sugest') is not none%}
+	<p>Sistema de clasificação sugerido</p>
+	<ul>
+	{% for ps1text2 in answers.q1.sugest %}
+		<li>{{ps1text2}}
+	{% endfor %}
+	</ul>
+{% endif %}
+
+<p><b>Questão 2</b></p>
+
+{% if answers.q2.get('areas') is not none %}
+	<p>Áreas sugeridas</p>
+	<ul>
+	{% for area in answers.q2.areas %}
+		<li>{{area}}
+	{% endfor %}
+	</ul>
+{% else %}
+	<p>Não foram sugeridas subáreas</p>
+{% endif %}
+
+
+<p><b>Questão 3</b></p>
+<p>Pontuação média: {{answers.q3.ps3text1|sum / answerscount }}</p>
+{% if answers.q3.ps3text2|count > 0 %}
+	<p>Comentários</p>
+	<ul>
+	{% for comment in answers.q3.ps3text2 %}
+		<li> {{comment}}
+	{% endfor %}
+	</ul>
+{% endif %}
+
+<p><b>Questão 4</b></p>
+{% if answers.q4.ps4text|count > 0 %}
+	<p>Comentários ({{ answers.q4.ps4text|count }})</p>
+	<ul>
+	{%for comment in answers.q4.ps4text %}
+		<li>{{comment}}
+	{% endfor %}
+	</ul>
+{%endif%}
+
+<p><b>Questão 5</b></p>
+{% if answers.q5|count > 0 %}
+	<p>Critérios usados para formação de parcerias</p>
+	<ul>
+		<li>Área de pesquisa: {{answers.q5.ps5text1|sum / answers.q5.ps5text1|count if answers.q5.ps5text1|count > 0 else 0}}
+		<li>Quantidade de periódicos qualificados: {{answers.q5.ps5text2|sum / answers.q5.ps5text2|count if answers.q5.ps5text2|count > 0 else 0 }}
+		<li>Vínculo institucional: {{answers.q5.ps5text3|sum / answers.q5.ps5text3|count if answers.q5.ps5text3|count > 0 else 0}}
+		<li>Possibilidade de interação presencial: {{answers.q5.ps5text4|sum / answers.q5.ps5text4|count if answers.q5.ps5text4|count > 0 else 0}}
+		<li>Se existe a possibilidade de projeto financiado: {{answers.q5.ps5text5|sum / answers.q5.ps5text5|count if answers.q5.ps5text5|count > 0 else 0}}
+		<li>Bom relacionamento pessoal: {{answers.q5.ps5text6|sum / answers.q5.ps5text6|count if answers.q5.ps5text6|count > 0 else 0}}
+		<li>Pesquisador PQ/CNPq: {{answers.q5.ps5text7|sum / answers.q5.ps5text7|count if answers.q5.ps5text7|count > 0 else 0}}
+		<li>Possibilidade de oferta de bolsas: {{answers.q5.ps5text8|sum / answers.q5.ps5text8|count if answers.q5.ps5text8|count > 0 else 0}}
+	</ul>
+{%endif%}
+
+<p><b>Questão 6</b></p>
+{% if answers.q6|count > 0%}
+	<p>Pesquisadores e áreas citados</p>
+	<ol>
+	{% for cited in answers.q6.keys() %}
+		<li>{{answers.q6[cited]}}
+	{% endfor %}
+	</ol>
+{% endif %}
+
+<p><b>Questão 7</b></p>
+<p>Concordaram com a recomendação: {{answers.q7.yes if answers.q7.get('yes') is not none else 0}}</p>
+<p>Discordaram: {{answers.q7.no if answers.q7.get('no') is not none else 0}}</p>
+<p>Precision: {{answers.q7.avg}}</p>
+
+<p><b>Questão 8</b></p>
+{%if answers.q8.comments|count > 0 %}
+	<p>Comentários</p>
+	<ul>
+	{% for comment in answers.q8.comments%}
+		<li> {{comment.decode('utf-8')}}
+	{% endfor %}
+	</ul>
+{%endif%}
+{% endblock %}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='scicoll.css') }}">
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    {% endblock %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+    <div class="footer">
+      {% block footer %}
+      &copy; Copyright 2016 by <a href="http://www.cic.unb.br/">CIC/UnB</a>.
+      {% endblock %}
+    </div>
+  </body>
+</html>

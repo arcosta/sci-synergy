@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Users profile{% endblock %}
+
+{%block head%}
+{{super()}}
+{%endblock%}
+
+{%block content%}
+<h1>{{user.name}}</h1>
+
+{% if user.lattesurl is not none %}
+<p>Lattes currculum: <a href="{{user.lattesurl}}">{{user.lattesurl}}</a></p>
+{% endif %}
+<hr>
+
+{%if user.bagofareas is not none %}
+<p>Areas of interest</p>
+<ul>
+{% for area in user.bagofareas %}
+	<li> {{area}}
+{% endfor %}
+</ul>
+{% else %}
+	<p>We were unable to find areas of interest.</p>
+{% endif %}
+
+
+{%if user.recomendation|length > 0 %}
+	<p>Recommendations for {{user.name}}</p>
+	<ul>
+	{% for author in user.recomendation %}
+		<li>{{ author|safe }}
+	{%endfor%}
+	</ul>
+{%endif%}
+
+
+<p><a onclick="javascript:history.back()">Voltar</a></p>
+{% endblock %}

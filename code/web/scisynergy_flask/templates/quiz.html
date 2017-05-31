@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="static/quiz.css">
+<script type="text/javascript" src="{{ url_for('static', filename='jquery.js') }}"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='quiz.js') }}"></script>
+<title>Questionário de verificação</title>
+</head>
+<body>
+	<h1>Questionário de Verificação de Recomendações</h1>
+
+	<div id="main">		
+<br />
+<br />
+<br />
+<br />
+<form method="post">
+<div class="item">
+<p>1 - Voce concorda com o Sistema de Classificação de sub-áreas da Computação criado pela ACM ? O sistema de classificação da ACM foi representado de forma amigável <a href="/acmtree">neste link</a> (clique nos círculos azuis para abrir as sub-áreas). Para mais informações sobre esse sistema de classificação acesse <a href="http://www.acm.org/about/class/2012">http://www.acm.org/about/class/2012</a>.</p>
+<input type="radio" name="ps1" value="yes"> Sim<br />
+<input type="radio" name="ps1" value="no"> Não<br />
+<input type="radio" name="ps1" value="maybe"> Parcialmente. Por que ? <input type="text" name="ps1text"> <br />
+Sugeriria outro sistema de classificação ? <input type="text" name="ps1text2">
+</div>
+<br />
+<br />
+<div class="item">
+<p>2 - Cite até oito sub-áreas da computação utilizadas em suas pesquisas. Por favor utilize o sistema de classificação da ACM mencionado na questão anterior caso deseje:</p>
+<div class="ui-widget">
+1 - <input type="text" class="acmarea" name="ps2text1"><br />
+2 - <input type="text" class="acmarea" name="ps2text2"><br />
+3 - <input type="text" class="acmarea" name="ps2text3"><br />
+4 - <input type="text" class="acmarea" name="ps2text4"><br />
+5 - <input type="text" class="acmarea" name="ps2text5"><br />
+6 - <input type="text" class="acmarea" name="ps2text5"><br />
+7 - <input type="text" class="acmarea" name="ps2text5"><br />
+8 - <input type="text" class="acmarea" name="ps2text5"><br />
+</div>
+</div>
+<br />
+<br />
+<div class="item">
+<p>3 - Usando uma escala de 1 a 10 (onde 1 representa total discordância e 10 total concordância), você usaria a base de dados <a href="http://dblp.uni-trier.de/" target="_blank">DBLP</a> como fonte de referência na área de Computação ? </p>
+<input type="text" name="ps3text1" maxlength="2" size="2">
+<br />
+<p>Caso sua avaliação tenha sido inferior a 6, por favor, deixe um comentário abaixo.</p>
+<textarea name="ps3text2" rows="3" cols="50">
+</textarea>
+<br />
+
+<br />
+</div>
+<br />
+<br />
+<div class="item">
+<p>4 - Você acredita que ampliar sua rede de colaboração científica com pesquisadores externos a sua instituição tem relação com a avaliação da CAPES do seu programa de pós-graduação ?</p>
+<textarea name="ps4text" rows="3" cols="50"></textarea>
+</div>
+<br />
+<br />
+<div name="extQuestion" class="item">
+<p>5 - Usando uma escala de 1 a 10, sendo 1 o menos importante e 10 o mais importante. Avalie os critérios de escolha de parcerias para publicação:</p>
+<input type="text" name="ps5text1" maxlength="2" size="2"> Área de pesquisa <br />
+<input type="text" name="ps5text2" maxlength="2" size="2"> Quantidade de periódicos qualificados<br />
+<input type="text" name="ps5text3" maxlength="2" size="2"> Vínculo institucional<br />
+<input type="text" name="ps5text4" maxlength="2" size="2"> Possibilidade de interação presencial<br />
+<input type="text" name="ps5text5" maxlength="2" size="2"> Se existe a possibilidade de projeto financiado <br />
+<input type="text" name="ps5text6" maxlength="2" size="2"> Bom relacionamento pessoal<br />
+<input type="text" name="ps5text7" maxlength="2" size="2"> Pesquisador PQ/CNPq<br />
+<input type="text" name="ps5text8" maxlength="2" size="2"> Possibilidade de oferta de bolsas<br />
+Outro, qual ?
+<p onclick="javascript:addInputText()">Clique aqui para adicionar critério</p>
+</div>
+<br />
+<br />
+<div class="item">
+<p>6 - Cite até cinco pesquisadores com os quais você teria interesse em publicar (que voce nunca publicou) informando em qual área da Computação se daria essa publicação.Você pode utilizar o sistema de classificação da ACM da questão 1, caso deseje.</p>
+1 - <input type="text" name="ps6text1">  [área de pesquisa: <input type="text" name="ps6text11"> ]<br />
+2 - <input type="text" name="ps6text2">  [área de pesquisa: <input type="text" name="ps6text21"> ]<br />
+3 - <input type="text" name="ps6text3">  [área de pesquisa: <input type="text" name="ps6text31"> ]<br />
+4 - <input type="text" name="ps6text4">  [área de pesquisa: <input type="text" name="ps6text41"> ]<br />
+5 - <input type="text" name="ps6text5">  [área de pesquisa: <input type="text" name="ps6text51"> ]<br />
+</div>
+<br />
+<br />
+<div class="item">
+{% if user %}
+<p>7 - A metodologia definida neste trabalho identificou as seguintes parcerias para publicação. Por favor, informe se concorda ou não e caso deseje deixar um comentário, utilizar o espaço ao lado. As recomendações foram produzidas automaticamente a partir das áreas utilizadas para publicações em periódicos, segundo o Sistema de Classificação da ACM e não possuem relação de ordenação entre cada uma.</p>
+<ul>
+<li><span id="recom">{{user.recomendation[0]}}</span>  <input type="radio" name="ps7r1" value="yes"> Sim <input type="radio" name="ps7r1" value="no"> Não. Comentário: <input type="text" name="ps7text1">
+<li><span id="recom">{{user.recomendation[1]}}</span>  <input type="radio" name="ps7r2" value="yes"> Sim <input type="radio" name="ps7r2" value="no"> Não. Comentário: <input type="text" name="ps7text2">
+<li><span id="recom">{{user.recomendation[2]}}</span>  <input type="radio" name="ps7r3" value="yes"> Sim <input type="radio" name="ps7r3" value="no"> Não. Comentário: <input type="text" name="ps7text3">
+<li><span id="recom">{{user.recomendation[3]}}</span>  <input type="radio" name="ps7r4" value="yes"> Sim <input type="radio" name="ps7r4" value="no"> Não. Comentário: <input type="text" name="ps7text4">
+<li><span id="recom">{{user.recomendation[4]}}</span>  <input type="radio" name="ps7r5" value="yes"> Sim <input type="radio" name="ps7r5" value="no"> Não. Comentário: <input type="text" name="ps7text5">
+</ul>
+{%else%}
+<p>Não foi possível gerar as recomendações</p>
+{%endif%}
+</div>
+<br />
+<br />
+<p>Caso queira deixar um comentário sobre esse trabalho, por favor utilize o espaço abaixo.</p>
+<textarea name="ps8text1" rows="3" cols="80">
+</textarea>
+<br />
+<br />
+<input type="submit" value="Concluir" />
+</form>
+<p>Obrigado pela colaboração.</p>
+
+<p>Caso deseje saber mais sobre o questionário, os dados serão coletados até 15 de junho de 2016 para que haja tempo hábil para compilação <br /> 
+dos resultados e inclusão na dissertação que está sendo desenvolvida. Os resultados serão disponibilizados no <a href="{{url_for('quizreport')}}" target="_blank">link</a> após o dia 31/05/2016.</p>
+</div>
+<br />
+<br />
+<p align="center"><sub>Para entrar em contato arcosta@gmail.com</sub></p>
+<br />
+<br />
+</body>
+</html>

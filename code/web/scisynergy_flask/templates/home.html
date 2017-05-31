@@ -1,0 +1,24 @@
+{%extends "base.html"%}
+{%block title%}Welcome{%endblock%}
+{%block head%}
+{{super()}}
+{%endblock%}
+{%block content%}
+<h1>Welcome</h1>
+<hr>
+<div class="nav">
+<p>Section:</p>
+<ul>
+<li> <a href="/pubgraph">Graph of publications</a>
+<li> <a href="/recommending">Recommending module</a>
+</ul>
+</div>
+
+<div class="main">
+<h2>Scientific Collaboration Network Graph</h2>
+<p></p>
+<p>The graph loaded can be visualized <a href="/pubgraph">here</a>. I contains {{graph_info[0]}} nodes and {{graph_info[1]}} relations.</p>
+
+</div>
+
+{%endblock%}

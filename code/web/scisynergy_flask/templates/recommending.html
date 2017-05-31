@@ -1,0 +1,29 @@
+{%extends "base.html"%}
+{%block title%}Recommendation{%endblock%}
+{%block head%}
+{{super()}}
+{%endblock%}
+{%block content%}
+<h2>Recommendation</h2>
+<hr>
+<br>
+{%if recos%}
+<p>Recommendations for {{recos.name}}</p>
+{%if recos.recomendation|length > 0 %}
+<ul>
+{% for author in recos.recomendation %}
+<li>{{ author }}</li>
+{%endfor%}
+</ul>
+{%endif%}
+
+{%else%}
+
+<form method="post">
+<p>Researcher name <input type="text" name="name"> </p>
+<input type="submit" value="Search">
+</form>
+<br><br>
+{%endif%}
+
+{% endblock %}

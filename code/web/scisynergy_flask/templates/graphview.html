@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="static/graph.css">
+
+<script>
+	var institution = "{{selected}}"; 
+</script>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<h2 align="center">Grafo de Publicações</h2>
+<p>O grafo pode demorar um pouco para ser renderizado em virtude da grande quantidade de vértices</p>
+<form method="POST">
+<p>Filtros</p>
+<p>Instituição: 
+<select name="institution">
+{%for i in institutions.keys() %}
+ <option value="{{i}}" {{"selected" if selected == i}}>{{institutions[i]}}</option>
+{% endfor %}
+</select>
+</p>
+
+<p><input type="submit" value="Aplicar" /></p>
+</form>
+<script type="text/javascript" src="static/graph.js"></script>
+
+</body>
+</html>

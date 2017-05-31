@@ -1,0 +1,39 @@
+body{
+	background-color: white;
+}
+h1{
+	text-align: center;
+	font-weight:  bold;
+}
+span.quest{
+	font-weight: bold;
+}
+
+ul 
+{
+    list-style-type: none;
+    list-style-position: inside;
+    padding-left: 0px;
+}
+li { 
+    padding-left: 6px; 
+}
+
+ul li span { 
+    float: left;
+    width: 700px;    
+}
+
+div#main{
+	background-color: lightblue;
+}
+#item{
+	width: 900px;
+}
+#main{
+	background-color: white;
+}
+
+.ui-autocomplete-loading {
+    background: white url("images/ui-anim_basic_16x16.gif") right center no-repeat;
+ }

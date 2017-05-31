@@ -1,0 +1,9 @@
+{%extends "base.html"%}
+{%block title%}Graph{%endblock%}
+{%block head%}
+{{super()}}
+<link rel="stylesheet" href="{{ url_for('static', filename='d3.js') }}">
+{%endblock%}
+{%block content%}
+Graph
+{%endblock%}

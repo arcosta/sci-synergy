@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="static/quiz.css">
+<title>HOME - Questionário de verificação</title>
+<script type="text/javascript" src="{{url_for('static', filename='jquery.js')}}"></script>
+</head>
+<body>
+    <h1>Questionário de Verificação de Recomendações</h1>
+    
+    <div id="main" style="width:80%;position: relative;left: 5%">
+    {% if name %}
+        <h2>Olá {{ name }}, obrigado por ter aceitado o convite.</h2>
+    {% endif %}
+    <p>O presente questionário visa avaliar a metodologia de recomendação de parcerias em pesquisa. O questionário é composto por sete perguntas e o tempo estimado para sua conclusão é de seis minutos.</p>
+<p>As recomendações produzidas são baseadas nas áreas de pesquisa identificadas através das publicações em periódicos realizadas por cada pesquisador assim como nos relacionamentos de coautoria já consolidados. Foi utilizada a base de dados DBLP como fonte de publicações, sendo adotadas apenas as três publicações mais recentes realizadas em periódicos distintos.</p>
+<p>O Sistema de Classificação de sub-áreas da Computação da ACM (Association for Computing Machinery) foi utilizada para identificar automaticamente as áreas de pesquisa em computação de cada pesquisador. Essa classificação encontra-se disponível em <a href="http://www.acm.org/about/class/2012">http://www.acm.org/about/class/2012</a>.</p>
+<p>Os dados foram filtrados para englobar pesquisadores vinculados a programas de pós-graduação em computação de diversos níveis de avaliação da Capes, incluindo as seguintes instituições: UFMG (conceito 7), USP (conceito 6), UFRN (conceito 5) e UnB (conceito 4). Foram incluídos ainda coautores de trabalhos publicados pelos pesquisadores vinculados aos referidos programas.</p>
+<br />
+    <p>Para iniciar o questionário, clique <a href="/questionario">aqui</a></p>
+</div>
+    </body>
+</html>
