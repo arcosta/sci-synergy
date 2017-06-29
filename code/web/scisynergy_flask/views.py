@@ -8,12 +8,12 @@ Created on 07/03/2016
 import json
 from flask import render_template, request, session
 
-from scicoll_flask import app
-from .db import findArea, insert_answer, get_username
-from .models import Researcher, GraphInfo, QuizReport
+from scisynergy_flask import app
+from .db import findArea
+from .models import Researcher, GraphInfo
 from flask.helpers import make_response
 from flask import jsonify
-from scicoll_flask.models import Publication, Institution
+from scisynergy_flask.models import Publication, Institution
 
 @app.before_first_request
 def initResearcher():
@@ -32,8 +32,6 @@ def index():
     gi = GraphInfo()
     
     return render_template('home.html', name = name, graph_info = [gi.nodeCount(), gi.relCount()])
-
-
 
 @app.route('/questionario', methods=['GET', 'POST'])
 @app.route('/quiz', methods=['GET', 'POST'])
@@ -67,27 +65,6 @@ def startquiz():
     else:
         return render_template('index.html', name = None)
 
-@app.route('/quizreport')
-def quizreport():
-    return "Por favor, retorne a partir de 01/06/2016"
-
-@app.route('/quizcontrolpanel')
-def quizcontrolpanel():
-    qr = QuizReport()
-    
-    answers = qr.getAnswers()
-    answers_id = set()
-    
-    for idusuario,idquestao,content in answers:
-        answers_id.add(idusuario)
-        #print(idquestao + " - "+ content)
-    
-    summary = qr.generateSummary()
-    
-    answers_name = [Researcher().find(a).name for a in answers_id]
-    
-    return render_template('quizcontrolpanel.html', answerscount = len(answers_id), answersname = answers_name, answers = summary)
-
 @app.route('/pubgraph', methods=['POST', 'GET'])
 def showgraph():
     #TODO: Pegar as instituicoes para aplicar os filtros
@@ -105,15 +82,19 @@ def graphapi():
     instFilter = request.args.get('inst')
     return jsonify( Publication().relationCoauthoring(instFilter) )
 
-#@app.route('/recommending', methods=['POST', 'GET'])
-#def recommending():
-#    if request.method == 'POST':
-#        name = request.form['name']
-#        r = Researcher().findByName(name)
-#        
-#        return render_template('recommending.html', recos = r)
-#    else:
-#        return render_template('recommending.html', recos = None)
+@app.route('/iteraction.json')
+def iteraction():
+    return jsonify(Institution().institutionInteraction())
+    
+@app.route('/recommending', methods=['POST', 'GET'])
+def recommending():
+    if request.method == 'POST':
+        name = request.form['name']
+        r = Researcher().findByName(name)
+        
+        return render_template('recommending.html', recos = r)
+    else:
+        return render_template('recommending.html', recos = None)
 
 @app.route('/acmtree')
 def acmtree():
@@ -158,7 +139,10 @@ def search():
     else:
         return render_template('search.html', action='query')
 
- 
+@app.route('/chord', methods=["GET"])
+def chod():
+    return render_template("chord.html")
+    
 @app.route('/autocomplete', methods=["GET"])
 def autocomplete():
         partial = request.args.get('partial')
@@ -166,6 +150,7 @@ def autocomplete():
         area = findArea(partial)
         
         return json.dumps(area)
+
 @app.errorhandler(404)
 def page_not_found(error):
     return "A pagina solicitada nao esta disponivel",404

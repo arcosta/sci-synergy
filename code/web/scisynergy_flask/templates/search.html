@@ -20,7 +20,7 @@
 {%if result is none%}
 <p>No occurences found for <bold>{{queryTerm}}</bold></p>
 {% else %}
-<p>Researchers</p>
+<p>Researchers found ({{result|length }}):</p>
 <ul>
 {% for user in result %}
 	<li> <a href="profile/{{user.userid}}">{{user.name}}</a> 

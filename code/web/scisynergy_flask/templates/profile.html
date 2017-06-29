@@ -13,15 +13,15 @@
 {% endif %}
 <hr>
 
-{%if user.bagofareas is not none %}
 <p>Areas of interest</p>
+{%if user.bagofareas is not none %}
 <ul>
 {% for area in user.bagofareas %}
 	<li> {{area}}
 {% endfor %}
 </ul>
 {% else %}
-	<p>We were unable to find areas of interest.</p>
+	<p>We were unable to find any area of interest.</p>
 {% endif %}
 
 
@@ -34,6 +34,7 @@
 	</ul>
 {%endif%}
 
+<p>Publications</p>
 
-<p><a onclick="javascript:history.back()">Voltar</a></p>
+<p><a onclick="javascript:history.back()">Back</a></p>
 {% endblock %}
