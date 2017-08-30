@@ -1,7 +1,0 @@
-{
-    "dblp.filename": "dblp.xml.gz",
-    "neo4j.url": "bolt://localhost:7687",
-    "neo4j.username":"neo4j",
-    "neo4j.password":"7474",
-    "repo.root":"C:\\devel\\python\\DBLP\\repo"
-}

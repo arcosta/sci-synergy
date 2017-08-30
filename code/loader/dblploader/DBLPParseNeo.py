@@ -1,5 +1,5 @@
 """Script to import data from dblp xml to neo4j graph database"""
-from xml.sax import make_parser, ContentHandler
+from xml.sax import make_parser
 import gzip
 import time
 import datetime
@@ -10,8 +10,11 @@ import sys
 import shutil
 import os
 import logging
+from logging.handlers import RotatingFileHandler
+from dblpcontent import DBLPContentHandler
+from functools import lru_cache
 # nltk está gerando um erro pois não está encontrando os drives D e E
-from nltk.distance import edit_distance
+from nltk import distance
 from py2neo import Graph, Node, Relationship
 
 if sys.version_info.major < 3:
@@ -22,9 +25,11 @@ CONFIG = ''
 with open("configloader.json") as configFile:
     CONFIG = json.load(configFile)
 
-FORMAT = '%(asctime)-15s %(process)d:  %(message)s'
-logging.basicConfig(format=FORMAT, filename="DBLPImport.log", level='INFO')
-logger = logging.getLogger('ROOT')
+FORMAT = '%(asctime)-15s %(threadName)s:  %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+logger = logging.getLogger(__name__)
+logHandler = RotatingFileHandler("DBLPImport.log", 'a', maxBytes=5000000, backupCount=10)
+logger.addHandler(logHandler)
 
 URL = CONFIG['dblp.filename']
 graph = Graph(CONFIG['neo4j.url'],
@@ -46,14 +51,6 @@ else:
         logger.info("Recreating repo dir: " + rootRepo)
         os.mkdir(rootRepo)
 
-
-pubtypes = ['article',
-            'inproceedings',
-            'proceedings',
-            'book',
-            'incollection',
-            'phdthesis',
-            'mastersthesis']
 
 #================================================================
 def loadAuthor():
@@ -93,7 +90,8 @@ def loadAuthorFilter():
     filterFiles = ['docentes-unb.json',
                    'docentes-ufmg.json',
                    'docentes-ufrn.json',
-                   'docentes-usp.json']
+                   'docentes-usp.json',
+                   'docentes-ufam.json']
 
     lastAuthorid = graph.run('''MATCH (a:Author)
                              WHERE a.authorid is not null
@@ -104,26 +102,30 @@ def loadAuthorFilter():
         seqAuthor = lastAuthorid.current() + 1
 
     for j in filterFiles:
+        print("Loading filter %s" % j)
         instName = j.split('.')[0].split('-')[1]
 
         institution = graph.find_one("Institution", property_key='name',
                                      property_value=instName)
         if institution is None:
             institution = Node("Institution", name=instName)
+            for p in json.load(open(j, 'r', encoding='latin-1')):
+                if p is not None:
+                    author = Node("Author", name=p['name'],
+                                  lattesurl=p['lattesurl'])
+                    author['authorid'] = seqAuthor
 
-        for p in json.load(open(j, 'r', encoding='latin-1')):
-            if p is not None:
-                author = Node("Author", name=p['name'],
-                              lattesurl=p['lattesurl'])
-                author['authorid'] = seqAuthor
-
-                graph.create(author)
-                graph.create(Relationship(author, "ASSOCIATED TO", institution))
-                #del author
-                profList.append(author)
-                seqAuthor += 1
+                    graph.create(author)
+                    graph.create(Relationship(author, "ASSOCIATED TO", institution))
+                    #del author
+                    profList.append(author)
+                    seqAuthor += 1
+        else:
+            print("\tFilter load SKIPPED")
+            for rel in institution.match(rel_type='ASSOCIATED TO'):
+                profList.append(rel.start_node())
         del institution
-    print("Filters loaded")
+    
     return profList
 
 def removeAccents(data):
@@ -131,17 +133,19 @@ def removeAccents(data):
     translationTable = str.maketrans("çäáâãèéêíóôõöúñ", "caaaaeeeiooooun", ": '`{}[])(@?!_-/")
     return data.lower().translate(translationTable)
 
+@lru_cache(maxsize=1024)
 def compareNames(a, b):
     """Compare two names using a heuristic method"""
+    dist_threshold = 11
     if a is None or b is None:
         return False
     if a == b:
         return True
 
-    distance = edit_distance(a, b)
+    dist = distance.edit_distance(a, b)
 
     #if a.find('.') > 0 or b.find('.') > 0:
-    if distance <= 11:
+    if dist <= dist_threshold:
         a_list = a.split()
         b_list = b.split()
         if not a_list or not b_list:
@@ -176,28 +180,36 @@ def createCypherFiles(queue):
 def insertIntoGraph(queue):
     """Insert queue content into graph"""
     seqAuthor = 1
+    
+    #authorFilter = loadAuthor()
+    #authorFilter = loadAuthorFilter()
+    authorFilter = [node.name for node in graph.find("Author")]
+    
     while True:
         pubAttrs = queue.get()
-        if pubAttrs == -1:
+        if pubAttrs is None:
             break
+        include = False
+        if pubAttrs.get('author') is None:
+            continue
+        for author in pubAttrs.get('author'):
+            author = author.strip()
+            if [x for x in authorFilter if compareNames(removeAccents(x['name']), removeAccents(author))]:
+                include = True
+        
+        if not include:
+            continue
         newpub = graph.find_one("Publication", "title", pubAttrs.get("title"))
         if newpub is None:
-            print("Creating new publication")
+            logging.info("Creating new publication" + pubAttrs.get("title", ""))
+            newpub = Node()
             for att in pubAttrs.keys():
                 newpub[att] = pubAttrs.get(att, -1)
 
-            newpub.labels.add('Publication')
+            newpub.add_label('Publication')
             graph.create(newpub)
         else:
             continue
-
-        # Look for the authors of the publication and if not found create the new nodes
-        lastAuthorid = graph.run('''MATCH (a:Author)
-                                 WHERE a.authorid is not null 
-                                 RETURN a.authorid as authorid ORDER BY authorid DESC limit 1'''
-                                )
-        if lastAuthorid:
-            seqAuthor = lastAuthorid[0][0] + 1
 
         for aName in list(pubAttrs['author']):
             author = None
@@ -206,104 +218,49 @@ def insertIntoGraph(queue):
                     author = authorNode
                     break
 
-            if not author:
-                author = Node("Author", name=aName, authorid=seqAuthor)
+            if author is None:
+                author = Node("Author", name=aName)
                 graph.create(author)
-                print("New author created: %s" % aName)
-                seqAuthor += 1
+                logging.info("New author created: %s" % aName)
             relAuthoring = Relationship(author, "AUTHORING", newpub)
+            logging.info("!!! Creating relationship: " + newpub.get('title'))
             graph.create(relAuthoring)
-            print("Publication created: %s" % newpub['title'])
-        time.sleep(2)
+            
     print("All insertions done")
 
-#================================================================
-class DBLPContentHandler(ContentHandler):
-    """Handle xml database content"""
-    inPublication = True
-    currentPubName = ''
-    attrs = {}
-    value = ''
-
-    def __init__(self, queue=''):
-        super()
-        self.authorFilter = loadAuthorFilter()
-        #self.authorFilter = loadAuthor()
-        self.queue = queue
-
-    def startElement(self, name, attrs):
-        try:
-            if pubtypes.index(name) >= 0:
-                DBLPContentHandler.inPublication = True
-                DBLPContentHandler.currentPubName = name
-                DBLPContentHandler.attrs['key'] = attrs['key']
-        except ValueError as error:
-            error = ''
-
-    def endElement(self, name):
-        if DBLPContentHandler.inPublication is True:
-            if DBLPContentHandler.currentPubName == name:
-                DBLPContentHandler.attrs["type"] = name
-                #filtering publications by author
-                try:
-                    for author in DBLPContentHandler.attrs['author']:
-                        author = author.strip()
-                        if [x for x in self.authorFilter if compareNames(removeAccents(x['name']),
-                                                                         removeAccents(author))]:
-                            self.queue.put(DBLPContentHandler.attrs)
-                    # Flush object
-                except KeyError as error:
-                    error = ''
-
-                DBLPContentHandler.inPublication = False
-                DBLPContentHandler.attrs = {}
-            else:
-                if name == "author":
-                    if DBLPContentHandler.attrs.get(name) is not None:
-                        DBLPContentHandler.attrs[name].append(DBLPContentHandler.value.strip())
-                    else:
-                        DBLPContentHandler.attrs[name] = [DBLPContentHandler.value]
-                else:
-                    DBLPContentHandler.attrs[name] = DBLPContentHandler.value
-        DBLPContentHandler.value = ''
-
-    def characters(self, content):
-        if content != '':
-            DBLPContentHandler.value += content.replace('\n', '')
 
 #================================================================
 def main(source):
     """ main method"""
-    print("Inicializando parse do arquivo %s em %s" %(source, time.ctime()))
+    print("Starting parse of file %s at %s" %(source, time.ctime()))
+    loadAuthorFilter()
 
     start_time = time.time()
     queue = Queue()
 
     process_list = list()
+    
     for _ in range(4):
-        #process_list.append(Process(target=insertIntoGraph, args=(q,)))
-        process_list.append(Process(target=createCypherFiles, args=(queue,)))
+        process_list.append(Process(target=insertIntoGraph, args=(queue,)))
+        #process_list.append(Process(target=createCypherFiles, args=(queue,)))
 
     for process in process_list:
         process.start()
 
     source = gzip.open(source, mode='rt', encoding='latin-1')
     parser = make_parser()
-    #parser.setFeature(handler.feature_external_ges, False);
-    #parser.setFeature(handler.feature_validation, False)
     parser.setContentHandler(DBLPContentHandler(queue))
     parser.parse(source)
-    # Flag for last element of queue, one for each queue consumer
-    queue.put(-1)
-    queue.put(-1)
-    queue.put(-1)
-    queue.put(-1)
 
-    for process in process_list:
-        process.join()
+    queue.join_thread()
+
+    #TODO: Make a test, with this instructions all processes never end.
+    #for process in process_list:
+    #    process.join()
+    #    logging.info("Consumer terminated")
 
     elapsed_time = time.time() - start_time
-    print("Tempo de execução ", datetime.timedelta(seconds=elapsed_time))
+    print("Execution time ", datetime.timedelta(seconds=elapsed_time))
     print("Finish")
 
 if __name__ == "__main__":

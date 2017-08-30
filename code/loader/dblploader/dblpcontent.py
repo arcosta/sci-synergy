@@ -1,3 +1,6 @@
+from xml.sax import ContentHandler
+import logging
+
 class DBLPContentHandler(ContentHandler):
     """Handle xml database content"""
     inPublication = True
@@ -7,13 +10,20 @@ class DBLPContentHandler(ContentHandler):
 
     def __init__(self, queue=''):
         super()
-        self.authorFilter = loadAuthorFilter()
-        #self.authorFilter = loadAuthor()
+        
         self.queue = queue
+        self.pubtypes = ['article',
+            'inproceedings',
+            'proceedings',
+            'book',
+            'incollection',
+            'phdthesis',
+            'mastersthesis']
+
 
     def startElement(self, name, attrs):
         try:
-            if pubtypes.index(name) >= 0:
+            if self.pubtypes.index(name) >= 0:
                 DBLPContentHandler.inPublication = True
                 DBLPContentHandler.currentPubName = name
                 DBLPContentHandler.attrs['key'] = attrs['key']
@@ -24,17 +34,8 @@ class DBLPContentHandler(ContentHandler):
         if DBLPContentHandler.inPublication is True:
             if DBLPContentHandler.currentPubName == name:
                 DBLPContentHandler.attrs["type"] = name
-                #filtering publications by author
-                try:
-                    for author in DBLPContentHandler.attrs['author']:
-                        author = author.strip()
-                        if [x for x in self.authorFilter if compareNames(removeAccents(x['name']),
-                                                                         removeAccents(author))]:
-                            self.queue.put(DBLPContentHandler.attrs)
-                    # Flush object
-                except KeyError as error:
-                    logging.debug(error)
-
+                self.queue.put(DBLPContentHandler.attrs)
+                # Flush object                
                 DBLPContentHandler.inPublication = False
                 DBLPContentHandler.attrs = {}
             else:
@@ -50,3 +51,6 @@ class DBLPContentHandler(ContentHandler):
     def characters(self, content):
         if content != '':
             DBLPContentHandler.value += content.replace('\n', '')
+    def endDocument(self):
+        self.queue.close()
+    

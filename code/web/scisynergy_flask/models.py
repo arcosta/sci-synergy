@@ -32,8 +32,7 @@ class Researcher(object):
     def __init__(self):
         self.publications = list()
         if not Researcher.index_initialized:
-            Researcher.indexOfNames = Researcher.initNamesIndex()
-        
+            Researcher.indexOfNames = Researcher.initNamesIndex()        
     
     @staticmethod
     def tokenSanitize(token):
@@ -48,8 +47,7 @@ class Researcher(object):
 
     @staticmethod
     def initNamesIndex():
-        invertedIndex = {}
-        
+        invertedIndex = {}        
         # Build index
         for author in graph.find("Author"):
             name = author['name']
@@ -72,6 +70,9 @@ class Researcher(object):
 
         
     def updateInfos(self, remoteNode):
+        '''
+        @desc Update user informations fetched from database
+        '''
         self.name = remoteNode['name']
         self.bagofareas = remoteNode['bagofareas']
         self.lattesurl = remoteNode['lattesurl']
@@ -106,11 +107,11 @@ class Researcher(object):
             
         return self
     
-    def findByName(self, name=''):
+    def findByName(self, name):
         if not name or name == '':
             return None
         
-        retVal = graph.find_one("Author", 'name', name)
+        retVal = graph.find_one('Author', 'name', name)
         if retVal is not None:
             self.updateInfos(retVal)             
         
@@ -169,11 +170,10 @@ RETURN a, b, count(p), i''' % institution
 class Institution(object):
     def __init__(self):
         pass
-    def getInstitutionsName(self):
-        
+    def getInstitutionsName(self):        
         return [inst['name'] for inst in graph.find("Institution")]
     def institutionInteraction(self):
-        query = ''' MATCH path=(i1:Institution)-[]-(a1:Author)-[]-(p:Publication)-[]-(a2:Author)-[]-(i2:Institution)
+        query = '''MATCH path=(i1:Institution)-[]-(a1:Author)-[]-(p:Publication)-[]-(a2:Author)-[]-(i2:Institution)
                 WHERE i1 <> i2
                 RETURN i1.name,i2.name, count(p)
                 '''
@@ -182,6 +182,7 @@ class Institution(object):
         for i in interaction:
             interlist.append({"source":i[0], "target":i[1], "rel_count":i[2]})
         return dict(result=interlist)
+
 class GraphInfo(object):
     def __init__(self):
         pass
