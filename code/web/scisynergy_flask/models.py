@@ -120,6 +120,15 @@ class Researcher(object):
 class Publication(object):
     def __init__(self):
         pass
+    def colorcode(self, inst):
+        colormap = {'ufrn':'blue',
+                    'unb':  'green',
+                    'ufam': 'gray',
+                    'usp': 'red',
+                    'ufmg': 'black'
+                    }
+        return colormap.get(inst, 'yellow')
+        
     def relationCoauthoring(self, institution=None):
         queryRelations = '''MATCH 
     (a:Author)-[r1:AUTHORING]-(p:Publication)-[r2:AUTHORING]-(b:Author) 
@@ -129,25 +138,25 @@ WITH
     p,a,b
 OPTIONAL MATCH 
     (a)-[rv:`ASSOCIATED TO`]-(i:Institution)
-RETURN a, b, count(p), i'''
+RETURN a, b, count(p) as c, i'''
         
         if institution is not None and institution != 'all':
             queryRelations = '''MATCH 
     (i:Institution {name: "%s"})-[r1:`ASSOCIATED TO`]-(a:Author)-[r2:AUTHORING]-(p:Publication)-[r3:AUTHORING]-(b:Author) 
 WHERE 
     p.type='article' 
-RETURN a, b, count(p), i''' % institution
+RETURN a, b, count(p) as c, i''' % institution
                     
-        relations = graph.run(queryRelations)
+        relations = graph.run(queryRelations).data()
         links = list()
-        if relations.__len__() < 10:
+        if len(relations) < 10:
             raise Exception("Few nodes")
         for r in relations:
-            links.append({"source":r[0]["name"], 
-                          "target":r[1]["name"], 
+            links.append({"source":r['a']["name"], 
+                          "target":r['b']["name"], 
                           "size":6,
-                          "rel_count":r[2],
-                          "institution": r[3]['color'] if r[3] is not None else 'yellow'
+                          "rel_count":r['c'],
+                          "institution": self.colorcode(r['i']['name']) if r['i'] is not None else 'yellow'
                         })
         print("Modelo criado com %i arestas" % len(links))    
         return dict(children=links)
