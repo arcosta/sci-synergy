@@ -16,7 +16,8 @@ if os.environ.get('OPENSHIFT_PYTHON_IP') is not None:
     graph = Graph("http://datagraph-academicmetrics.rhcloud.com:80/db/data")
 else:
     print('Using localhost database')
-    graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
+    #graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
+    graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data")
 
 #FIXME: Dont do this at home
 def fix_code(_str, code):
