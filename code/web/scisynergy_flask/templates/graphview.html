@@ -9,11 +9,11 @@
 
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<h2 align="center">Grafo de Publicações</h2>
-<p>O grafo pode demorar um pouco para ser renderizado em virtude da grande quantidade de vértices</p>
+<h2 align="center">Publication Graph</h2>
+<p>The Graph may take a moment to be render because th amount of vertex</p>
 <form method="POST">
-<p>Filtros</p>
-<p>Instituição: 
+<p>Filters</p>
+<p>Institution: 
 <select name="institution">
 {%for i in institutions.keys() %}
  <option value="{{i}}" {{"selected" if selected == i}}>{{institutions[i]}}</option>
@@ -21,7 +21,7 @@
 </select>
 </p>
 
-<p><input type="submit" value="Aplicar" /></p>
+<p><input type="submit" value="Go" /></p>
 </form>
 <script type="text/javascript" src="static/graph.js"></script>
 
