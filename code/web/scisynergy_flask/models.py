@@ -19,8 +19,9 @@ else:
     try:
         #graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
         #graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
-        graph = Graph(os.getenv("DATAGRAPH_SERVICE_HOST","datagraph.sci-synergy.svc"), user='neo4j', password='neo4j', bolt=True)
-    except:
+        graph = Graph(host=os.getenv("DATAGRAPH_SERVICE_HOST","datagraph.sci-synergy.svc"), user='neo4j', password='neo4j', bolt=True)
+    except Exception as err:
+        print("Graph connection error ", err)
         graph = ''
 
 #FIXME: Dont do this at home
