@@ -106,7 +106,7 @@ class Researcher(object):
     def find(self, idx = 0):
         if idx is None or idx == 0:
             return None
-        if graph = '':
+        if graph == '':
             return None
         retVal = graph.find_one("Author", 'authorid', int(idx))        
         
@@ -118,7 +118,7 @@ class Researcher(object):
     def findByName(self, name):
         if not name or name == '':
             return None
-        if graph = '':
+        if graph == '':
             return None
         retVal = graph.find_one('Author', 'name', name)
         if retVal is not None:
