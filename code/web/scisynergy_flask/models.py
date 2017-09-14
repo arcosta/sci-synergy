@@ -16,9 +16,12 @@ if os.environ.get('OPENSHIFT_PYTHON_IP') is not None:
     graph = Graph("http://datagraph-academicmetrics.rhcloud.com:80/db/data")
 else:
     print('Using localhost database')
-    #graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
-    #graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
-    graph = Graph("datagraph.sci-synergy.svc", user='neo4j', password='neo4j')
+    try:
+        #graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
+        #graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
+        graph = Graph("datagraph.sci-synergy.svc", user='neo4j', password='neo4j')
+    except py2neo.packages.httpstream.http.SocketError:
+        graph = ''
 
 #FIXME: Dont do this at home
 def fix_code(_str, code):
@@ -44,13 +47,14 @@ class Researcher(object):
             translationTable = string.maketrans("забвгийкнуфхъс", "caaaaeeeioooun")
             return token.lower().encode('latin-1').translate(translationTable)
         else:
-            translationTable = str.maketrans("забвгийкнуфхъс", "caaaaeeeioooun", ": '`{}[])(@?!_-/")
+            translationTable = str.maketrans("забвгийкнуфхъс", "caaaaeeeioooun", ":'`{}[])(@?!_-/")
             return token.lower().translate(translationTable)
 
     @staticmethod
     def initNamesIndex():
         invertedIndex = {}        
-        # Build index
+        if graph == '':
+            return None
         for author in graph.find("Author"):
             name = author['name']
             authorid = author['authorid']
@@ -102,6 +106,8 @@ class Researcher(object):
     def find(self, idx = 0):
         if idx is None or idx == 0:
             return None
+        if graph = '':
+            return None
         retVal = graph.find_one("Author", 'authorid', int(idx))        
         
         if retVal is not None:
@@ -112,7 +118,8 @@ class Researcher(object):
     def findByName(self, name):
         if not name or name == '':
             return None
-        
+        if graph = '':
+            return None
         retVal = graph.find_one('Author', 'name', name)
         if retVal is not None:
             self.updateInfos(retVal)             
