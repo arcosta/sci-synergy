@@ -130,7 +130,7 @@ def loadAuthorFilter():
 
 def removeAccents(data):
     """Remove accents from input string"""
-    translationTable = str.maketrans("çäáâãèéêíóôõöúñ", "caaaaeeeiooooun", ": '`{}[])(@?!_-/")
+    translationTable = str.maketrans("çäáâãèéêíóôõöúñ", "caaaaeeeiooooun", ":'`{}[])(@?!_-/")
     return data.lower().translate(translationTable)
 
 @lru_cache(maxsize=1024)
