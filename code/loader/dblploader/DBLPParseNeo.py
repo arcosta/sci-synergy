@@ -15,7 +15,7 @@ from dblpcontent import DBLPContentHandler
 from functools import lru_cache
 # nltk está gerando um erro pois não está encontrando os drives D e E
 from nltk import distance
-from py2neo import Graph, Node, Relationship
+from py2neo import Graph, Node, Relationship, remote
 
 if sys.version_info.major < 3:
     print("Please, use Python 3")
@@ -51,33 +51,7 @@ else:
         logger.info("Recreating repo dir: " + rootRepo)
         os.mkdir(rootRepo)
 
-
-#================================================================
-def loadAuthor():
-    """Insert an author into graph"""
-    seqAuthor = -1
-    p = {
-        'name':'Vanessa Tavares Nunes',
-        'lattesurl':'http://lattes.cnpq.br/2043415661294559'
-        }
-
-    lastAuthorid = graph.run('''MATCH (a:Author)
-    WHERE a.authorid is not null 
-    RETURN a.authorid as authorid 
-    ORDER BY authorid DESC limit 1'''
-                            )
-
-    if lastAuthorid:
-        seqAuthor = lastAuthorid[0][0] + 1
-
-    author = Node("Author",
-                  name=p['name'],
-                  lattesurl=p['lattesurl']
-                 )
-    author['authorid'] = seqAuthor
-
-    graph.create(author)
-    return [author]
+return [author]
 
 #================================================================
 def loadAuthorFilter():
@@ -85,22 +59,15 @@ def loadAuthorFilter():
     @return A list of author names
     """
     profList = list()
-    seqAuthor = 1
-
+    
     filterFiles = ['docentes-unb.json',
                    'docentes-ufmg.json',
                    'docentes-ufrn.json',
                    'docentes-usp.json',
                    'docentes-ufam.json']
 
-    lastAuthorid = graph.run('''MATCH (a:Author)
-                             WHERE a.authorid is not null
-                             RETURN a.authorid as authorid ORDER BY authorid DESC limit 1'''
-                            )
-
-    if lastAuthorid.current() is not None:
-        seqAuthor = lastAuthorid.current() + 1
-
+    
+    
     for j in filterFiles:
         print("Loading filter %s" % j)
         instName = j.split('.')[0].split('-')[1]
@@ -113,13 +80,12 @@ def loadAuthorFilter():
                 if p is not None:
                     author = Node("Author", name=p['name'],
                                   lattesurl=p['lattesurl'])
-                    author['authorid'] = seqAuthor
-
+                    
                     graph.create(author)
                     graph.create(Relationship(author, "ASSOCIATED TO", institution))
                     #del author
                     profList.append(author)
-                    seqAuthor += 1
+                    
         else:
             print("\tFilter load SKIPPED")
             for rel in institution.match(rel_type='ASSOCIATED TO'):
@@ -181,8 +147,6 @@ def insertIntoGraph(queue):
     """Insert queue content into graph"""
     seqAuthor = 1
     
-    #authorFilter = loadAuthor()
-    #authorFilter = loadAuthorFilter()
     authorFilter = [node.name for node in graph.find("Author")]
     
     while True:
