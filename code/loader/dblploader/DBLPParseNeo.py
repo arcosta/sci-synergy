@@ -26,15 +26,15 @@ with open("configloader.json") as configFile:
     CONFIG = json.load(configFile)
 
 FORMAT = '%(asctime)-15s %(threadName)s:  %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+#logging.basicConfig(format=FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
 logHandler = RotatingFileHandler("DBLPImport.log", 'a', maxBytes=5000000, backupCount=10)
 logger.addHandler(logHandler)
 
 URL = CONFIG['dblp.filename']
 graph = Graph(CONFIG['neo4j.url'],
-              username=CONFIG['neo4j.username'],
-              password=CONFIG['neo4j.password'],
+#              username=CONFIG['neo4j.username'],
+#              password=CONFIG['neo4j.password'],
               bolt=True
              )
 
@@ -50,8 +50,6 @@ else:
         shutil.rmtree(rootRepo)
         logger.info("Recreating repo dir: " + rootRepo)
         os.mkdir(rootRepo)
-
-return [author]
 
 #================================================================
 def loadAuthorFilter():
@@ -96,7 +94,7 @@ def loadAuthorFilter():
 
 def removeAccents(data):
     """Remove accents from input string"""
-    translationTable = str.maketrans("çäáâãèéêíóôõöúñ", "caaaaeeeiooooun", ": '`{}[])(@?!_-/")
+    translationTable = str.maketrans("çäáâãèéêíóôõöúñ", "caaaaeeeiooooun", ":'`{}[])(@?!_-/")
     return data.lower().translate(translationTable)
 
 @lru_cache(maxsize=1024)
@@ -109,11 +107,10 @@ def compareNames(a, b):
         return True
 
     dist = distance.edit_distance(a, b)
-
-    #if a.find('.') > 0 or b.find('.') > 0:
+        
     if dist <= dist_threshold:
-        a_list = a.split()
-        b_list = b.split()
+        a_list = a.strip().split()
+        b_list = b.strip().split()
         if not a_list or not b_list:
             return False
         if a_list[0] == b_list[0] and a_list[-1] == b_list[-1]:
@@ -147,7 +144,7 @@ def insertIntoGraph(queue):
     """Insert queue content into graph"""
     seqAuthor = 1
     
-    authorFilter = [node.name for node in graph.find("Author")]
+    authorFilter = [node['name'] for node in graph.find("Author")]
     
     while True:
         pubAttrs = queue.get()
@@ -158,7 +155,7 @@ def insertIntoGraph(queue):
             continue
         for author in pubAttrs.get('author'):
             author = author.strip()
-            if [x for x in authorFilter if compareNames(removeAccents(x['name']), removeAccents(author))]:
+            if [x for x in authorFilter if compareNames(removeAccents(x), removeAccents(author))]:
                 include = True
         
         if not include:
@@ -218,10 +215,9 @@ def main(source):
 
     queue.join_thread()
 
-    #TODO: Make a test, with this instructions all processes never end.
-    #for process in process_list:
-    #    process.join()
-    #    logging.info("Consumer terminated")
+    for process in process_list:
+        process.join()
+        logging.info("Consumer terminated")
 
     elapsed_time = time.time() - start_time
     print("Execution time ", datetime.timedelta(seconds=elapsed_time))
