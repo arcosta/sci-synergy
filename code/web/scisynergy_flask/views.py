@@ -6,7 +6,7 @@ Created on 07/03/2016
 #-*-coding: latin-1 -*-
 
 import json
-from flask import render_template, request, session
+from flask import render_template, request, session, redirect, url_for
 
 from scisynergy_flask import app
 from .db import findArea
@@ -29,7 +29,10 @@ def index():
         name = get_username(idx)
         if name != '':
             session['username'] = name
-    gi = GraphInfo()
+    try:
+        gi = GraphInfo()
+    except:
+        return redirect(url_for('maintenance'))
     
     return render_template('home.html', name = name, graph_info = [gi.nodeCount(), gi.relCount()])
 
