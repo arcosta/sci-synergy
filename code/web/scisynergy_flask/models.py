@@ -9,6 +9,7 @@ Created on 20/04/2016
 from py2neo import Graph
 import os
 import sys
+from functools import lru_cache
 
 graph = ''
 
@@ -205,15 +206,28 @@ class Institution(object):
 class GraphInfo(object):
     def __init__(self):
         pass
+        
     def nodeCount(self):
         return graph.run("MATCH (n) RETURN count(n) AS nodes").data()[0]['nodes']
+        
     def relCount(self):
         return graph.run("MATCH ()-[r]-() RETURN count(r) AS rels").data()[0]['rels']
+        
     def avgDegree(self):
         numNodes = self.nodeCount()
         numRels = self.relCount()
         return numRels / numNodes
+        
     def betweenness(self):
         pass
-    
+        
+    def closeness(self):
+        pass
+        
+    def diameter(self):
+        pass
+        
+    @lru_cache(maxsize=1024)    
+    def distance(self, x, y):
+        pass
     
