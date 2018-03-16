@@ -16,11 +16,10 @@ graph = ''
 if os.environ.get('OPENSHIFT_PYTHON_IP') is not None:
     graph = Graph("http://datagraph-academicmetrics.rhcloud.com:80/db/data")
 else:
-    print('Using localhost database')
+    print('Using foreign database')
     try:
-        #graph = Graph(hostname='datagraph.sci-synergy.svc', password='7474')
-        graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
-        #graph = Graph(host=os.getenv("DATAGRAPH_SERVICE_HOST","datagraph.sci-synergy.svc"), user='neo4j', password='neo4j', bolt=True)
+        graph = Graph(host='10.158.0.2', user='neo4j', password='scisynergy', bolt=True)
+        #graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
     except Exception as err:
         print("Graph connection error: ", err)
         graph = ''
