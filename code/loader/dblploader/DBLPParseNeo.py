@@ -16,6 +16,7 @@ from functools import lru_cache
 # nltk está gerando um erro pois não está encontrando os drives D e E
 from nltk import distance
 from py2neo import Graph, Node, Relationship, remote
+import requests
 
 if sys.version_info.major < 3:
     print("Please, use Python 3")
@@ -33,8 +34,8 @@ logger.addHandler(logHandler)
 
 URL = CONFIG['dblp.filename']
 graph = Graph(CONFIG['neo4j.url'],
-#              username=CONFIG['neo4j.username'],
-#              password=CONFIG['neo4j.password'],
+              username=CONFIG['neo4j.username'],
+              password=CONFIG['neo4j.password'],
               bolt=True
              )
 
@@ -50,6 +51,16 @@ else:
         shutil.rmtree(rootRepo)
         logger.info("Recreating repo dir: " + rootRepo)
         os.mkdir(rootRepo)
+
+#================================================================
+def downloadDBLPdump():
+    response = requests.get(CONFIG["dblp.url"])
+    
+    if response.status_code != requests.codes.ok:
+        raise IOError("Server response: " + str(response.status_code))
+    with open(CONFIG["dblp.filename"], "wb") as data:
+        for chunk in response.iter_content(chunk_size=128):
+            data.write(chunk)
 
 #================================================================
 def loadAuthorFilter():
@@ -198,6 +209,7 @@ def main(source):
 
     start_time = time.time()
     queue = Queue()
+    downloadDBLPdump()
 
     process_list = list()
     

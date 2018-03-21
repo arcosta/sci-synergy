@@ -1,10 +1,9 @@
-#-*- coding: latin-1 -*-
 '''
 Created on 20/04/2016
 
 @author: aurelio
 '''
-#-*-coding: latin-1 -*-
+#-*-coding: UTF-8 -*-
 
 from py2neo import Graph
 import os
@@ -20,6 +19,7 @@ else:
     try:
         graph = Graph(host='10.158.0.2', user='neo4j', password='scisynergy', bolt=True)
         #graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data", user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
+        #graph = Graph(host=os.getenv("DATAGRAPH_SERVICE_HOST","datagraph.sci-synergy.svc"), user='neo4j', password='neo4j', bolt=True)
     except Exception as err:
         print("Graph connection error: ", err)
         graph = ''
@@ -45,10 +45,10 @@ class Researcher(object):
         translationTable = None
         if sys.version_info < (2,9):
             import string 
-            translationTable = string.maketrans("забвгийкнуфхъс", "caaaaeeeioooun")
+            translationTable = string.maketrans("caaaaeeeiooooun", "caaaaeeeioooun")
             return token.lower().encode('latin-1').translate(translationTable)
         else:
-            translationTable = str.maketrans("забвгийкнуфхъс", "caaaaeeeioooun", ":'`{}[])(@?!_-/")
+            translationTable = str.maketrans("caaaaeeeiooooun", "caaaaeeeioooun", ":'`{}[])(@?!_-/")
             return token.lower().translate(translationTable)
 
     @staticmethod

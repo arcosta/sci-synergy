@@ -31,7 +31,8 @@ def index():
             session['username'] = name
     try:
         gi = GraphInfo()
-    except:
+    except e:
+        app.error_message = e
         return redirect(url_for('maintenance'))
     
     return render_template('home.html', name = name, graph_info = [gi.nodeCount(), gi.relCount()])
@@ -160,4 +161,4 @@ def page_not_found(error):
 
 @app.route('/maintenance')
 def maintenance():
-    return render_template('maintenance.html')
+    return render_template('maintenance.html', error_message = app.error_message)
