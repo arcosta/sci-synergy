@@ -8,8 +8,9 @@ from scisynergy_flask import app
 import os
 
 if __name__ == '__main__':
-    try:
-        app.run(debug=True, host=os.environ['OPENSHIFT_PYTHON_IP'], port=int(os.environ['OPENSHIFT_PYTHON_PORT']))
-    except KeyError as err:
-        print("OPENSHIFT env not available, local running")
+    if os.environ.get('deployment', 'bar') == 'bar':
+        print("Running at home")
         app.run(debug=True, host="0.0.0.0", port=8080)
+    else:
+        print("Running on GCP")
+        app.run(debug=False, host="0.0.0.0", port=8080)
