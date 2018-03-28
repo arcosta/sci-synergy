@@ -12,8 +12,8 @@ from functools import lru_cache
 
 graph = ''
 
-if os.environ.get('OPENSHIFT_PYTHON_IP') is not None:
-    graph = Graph("http://datagraph-academicmetrics.rhcloud.com:80/db/data")
+if os.environ.get('deployment', 'bar') == 'bar':
+    graph = Graph(hostname='localhost', user='neo4j', password='scisynergy', bolt=True)
 else:
     print('Using foreign database')
     try:
@@ -45,10 +45,10 @@ class Researcher(object):
         translationTable = None
         if sys.version_info < (2,9):
             import string 
-            translationTable = string.maketrans("caaaaeeeiooooun", "caaaaeeeioooun")
-            return token.lower().encode('latin-1').translate(translationTable)
+            translationTable = string.maketrans("çàáâãéèêíóòöõüñ", "caaaaeeeiooooun")
+            return token.lower().encode('utf-8').translate(translationTable)
         else:
-            translationTable = str.maketrans("caaaaeeeiooooun", "caaaaeeeioooun", ":'`{}[])(@?!_-/")
+            translationTable = str.maketrans("çàáâãéèêíóòöõüñ", "caaaaeeeiooooun", ":'`{}[])(@?!_-/")
             return token.lower().translate(translationTable)
 
     @staticmethod
@@ -58,7 +58,13 @@ class Researcher(object):
             return None
         for author in graph.find("Author"):
             name = author['name']
-            authorid = author['authorid']
+            authorid = id(author)
+            if author.get('userid', 'x') == 'x':                
+                author['userid'] = int(authorid)
+                graph.push(author)
+            else:
+                authorid = author.get('userid')
+            
             
             #TODO: Remove stopwords
             for token in name.split():
@@ -83,7 +89,7 @@ class Researcher(object):
         self.name = remoteNode['name']
         self.bagofareas = remoteNode['bagofareas']
         self.lattesurl = remoteNode['lattesurl']
-        self.userid = remoteNode['authorid']
+        self.userid = remoteNode['userid']
         self.recomendation = list()
         for rec in remoteNode.match_outgoing("RECOMMENDATION"):
             recArea = rec.properties.get('area')
@@ -109,8 +115,11 @@ class Researcher(object):
             return None
         if graph == '':
             return None
-        retVal = graph.find_one("Author", 'authorid', int(idx))        
-        
+        retVal = None
+        for author in graph.find("Author"):
+            if author['userid'] == int(idx):
+                retVal = author
+                
         if retVal is not None:
             self.updateInfos(retVal)            
             

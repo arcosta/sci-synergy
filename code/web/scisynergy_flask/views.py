@@ -124,14 +124,12 @@ def search():
         for key in Researcher.indexOfNames.keys():
             for query_token in queryTerm.split():
                 if key == Researcher.tokenSanitize(query_token):
-                    hits.append(set(Researcher.indexOfNames[key]))
-        
+                    hits.append(set(Researcher.indexOfNames[key]))        
                  
         authors = list()
         if len(hits) == 0:
             return render_template("search.html", action='result', result=None, queryTerm=queryTerm)            
-        else:
-            
+        else:            
             intersection = set.intersection(*hits)
         
             for i in intersection:
