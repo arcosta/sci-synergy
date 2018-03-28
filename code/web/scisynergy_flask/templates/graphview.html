@@ -13,14 +13,15 @@
 <p>The Graph may take a moment to be render because th amount of vertex</p>
 <form method="POST">
 <p>Filters</p>
-<p>Institution: 
+<ul>
+<li>Institution: 
 <select name="institution">
 {%for i in institutions.keys() %}
  <option value="{{i}}" {{"selected" if selected == i}}>{{institutions[i]}}</option>
 {% endfor %}
 </select>
-</p>
 
+</ul>
 <p><input type="submit" value="Go" /></p>
 </form>
 <script type="text/javascript" src="static/graph.js"></script>
