@@ -16,7 +16,6 @@ body {
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
-
 var width = 720,
     height = 720,
     outerRadius = 960 / 2,
@@ -58,13 +57,19 @@ d3.json("iteraction.json", function(error, interaction){
         
     // Create a unique index for each institution 
     interaction.result.forEach(function(d){
-        if(!indexByName.has(d = d.source)) {
-            nameByIndex.set(n, d);
-            indexByName.set(d, n++);
+        var source = d.source;
+        if(!indexByName.has(source)) {
+            nameByIndex.set(n, source);
+            indexByName.set(source, n++);
+        }
+        var target = d.target;
+        if(!indexByName.has(target)) {
+            nameByIndex.set(n, target);
+            indexByName.set(target, n++);
         }
     });
     
-    // TODO: Construct the square matrix "matrix"
+    // Construct the square matrix of relationships
     interaction.result.forEach(function(d) {
         var source = indexByName.get(d.source),
             row = matrix[source];
@@ -72,7 +77,15 @@ d3.json("iteraction.json", function(error, interaction){
             row = matrix[source] = [];
             for(var i = -1; ++i < n;) row[i] = 1;
         }
-        row[indexByName.get(d.source)]++;
+        row[indexByName.get(d.source)] ++;
+        
+        var target = indexByName.get(d.target),
+            row = matrix[target];
+        if(!row){
+            row = matrix[target] = [];
+            for(var i = -1; ++i < n;) row[i] = 1;
+        }
+        row[indexByName.get(d.target)]++;
     });
     
     chord.matrix(matrix);

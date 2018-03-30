@@ -202,7 +202,7 @@ class Institution(object):
         return [inst['name'] for inst in graph.find("Institution")]
     def institutionInteraction(self):
         query = '''MATCH path=(i1:Institution)-[]-(a1:Author)-[]-(p:Publication)-[]-(a2:Author)-[]-(i2:Institution)
-                WHERE i1 <> i2
+                WHERE id(i1) > id(i2)
                 RETURN i1.name,i2.name, count(p)
                 '''
         interaction = graph.run(query)
