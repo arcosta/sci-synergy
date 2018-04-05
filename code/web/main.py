@@ -8,7 +8,7 @@ from scisynergy_flask import app
 import os
 
 if __name__ == '__main__':
-    if os.environ.get('deployment', 'bar') == 'bar':
+    if os.environ.get('GAE_DEPLOYMENT_ID', 'bar') == 'bar':
         print("Running at home")
         app.run(debug=True, host="0.0.0.0", port=8080)
     else:

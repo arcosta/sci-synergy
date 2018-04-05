@@ -12,7 +12,7 @@ from functools import lru_cache
 
 graph = ''
 
-if os.environ.get('deployment', 'bar') == 'bar':
+if os.environ.get('GAE_DEPLOYMENT_ID', 'bar') == 'bar':
     graph = Graph(hostname='localhost', user='neo4j', password='scisynergy', bolt=True)
 else:
     print('Using foreign database')
