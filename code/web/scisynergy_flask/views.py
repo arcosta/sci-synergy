@@ -74,8 +74,8 @@ def showgraph():
     #TODO: Pegar as instituicoes para aplicar os filtros
     inst = {i: i.upper() for i in Institution().getInstitutionsName()}
     
-    inst['all'] = 'Todas'
-    selected = 'all'
+    inst['all'] = 'All'
+    selected = 'UNB'
     if request.method == 'POST':
         selected = request.form['institution']
         
