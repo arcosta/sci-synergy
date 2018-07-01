@@ -77,7 +77,7 @@ d3.json("iteraction.json", function(error, interaction){
             row = matrix[source] = [];
             for(var i = -1; ++i < n;) row[i] = 1;
         }
-        row[indexByName.get(d.source)] ++;
+        row[indexByName.get(d.source)] ++ ;
         
         var target = indexByName.get(d.target),
             row = matrix[target];

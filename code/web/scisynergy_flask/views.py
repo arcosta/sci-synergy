@@ -75,7 +75,7 @@ def showgraph():
     inst = {i: i.upper() for i in Institution().getInstitutionsName()}
     
     inst['all'] = 'All'
-    selected = 'UNB'
+    selected = 'unb'
     if request.method == 'POST':
         selected = request.form['institution']
         
@@ -153,10 +153,15 @@ def autocomplete():
         
         return json.dumps(area)
 
+
 @app.errorhandler(404)
 def page_not_found(error):
     return "A pagina solicitada nao esta disponivel",404
 
+
 @app.route('/maintenance')
 def maintenance():
-    return render_template('maintenance.html', error_message = app.error_message)
+    try:
+        return render_template('maintenance.html', error_message = app.error_message)
+    except AttributeError:
+        return render_template('maintenance.html')

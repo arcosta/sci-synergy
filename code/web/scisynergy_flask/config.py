@@ -9,8 +9,8 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
-    DEBUG = False
-    TESTING = False
+    DEBUG = True
+    TESTING = True
     CSRF_ENABLED = True
     SECRET_KEY = '#@$dqeqwe12e11w1cc'
     

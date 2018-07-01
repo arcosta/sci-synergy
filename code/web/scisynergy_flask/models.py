@@ -31,6 +31,7 @@ def fix_code(_str, code):
     else:
         return unicode(_str, code)
 
+
 class Researcher(object):
     index_initialized = False
     indexOfNames = None
@@ -81,7 +82,6 @@ class Researcher(object):
         Researcher.index_initialized = True
         return invertedIndex
 
-        
     def updateInfos(self, remoteNode):
         '''
         @desc Update user informations fetched from database
@@ -135,7 +135,8 @@ class Researcher(object):
             self.updateInfos(retVal)             
         
         return self
-    
+
+
 class Publication(object):
     def __init__(self):
         pass
