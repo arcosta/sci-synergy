@@ -1,18 +1,19 @@
 FROM ubuntu:16.04
 
-MAINTANER Aurelio Costa "arcosta@gmail.com"
+MAINTAINER Aurelio Costa "arcosta@gmail.com"
 
 RUN apt-get update -y && \
     apt-get install -y python-pip python-dev
 
 # We copy just the requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /app/requirements.txt
+
+COPY ./code/web/requirements.txt ./app/requirements.txt
 
 WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-COPY . /app
+COPY ./code/web /app
 
 ENTRYPOINT [ "python" ]
 

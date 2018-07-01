@@ -1,0 +1,26 @@
+version: '3.3
+
+services:
+	app:
+		image: scisynergy:latest
+		ports:
+			- 80:5000
+		environment:
+			- NEO4J_URI=https://datagraph:7474
+		networks:
+			- scisynergynet
+	db:
+		image: neo4j:3.3.3
+		container_name: graph_db
+		ports:
+			- 7474:7474
+			- 7687:7687
+		networks:
+			scisynergynet:
+				aliases:
+					- "datagraph"
+		volumes:
+			- ./data:/data
+networks:
+	scisynergynet:
+		driver: bridge
