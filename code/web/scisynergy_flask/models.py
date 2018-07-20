@@ -13,7 +13,9 @@ from functools import lru_cache
 graph = ''
 
 if os.environ.get('GAE_DEPLOYMENT_ID', 'bar') == 'bar':
-    graph = Graph(hostname='localhost', user='neo4j', password='scisynergy', bolt=True)
+    print('Using docker stack')
+    #graph = Graph(os.getenv('NEO4J_URI'), user='neo4j', password='scisynergy')
+    graph = Graph(os.getenv('NEO4J_URI'))
 else:
     print('Using foreign database')
     try:
@@ -57,7 +59,7 @@ class Researcher(object):
         invertedIndex = {}        
         if graph == '':
             return None
-        for author in graph.find("Author"):
+        for author in graph.nodes.match("Author"):
             name = author['name']
             authorid = id(author)
             if author.get('userid', 'x') == 'x':                
