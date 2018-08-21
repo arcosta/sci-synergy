@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+.link {
+  fill: none;
+  stroke: #666;
+}
+
+.source {
+  stroke: #333;
+  stroke-width: .5px;
+}
+
+.target {
+    stroke: #333;
+    stroke-width: .5px;
+}
+
+circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+text {
+  font: 9px sans-serif;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+</style>
+
+<script>
+	var institution = "{{selected}}"; 
+</script>
+
+<body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<h2 align="center">Publication Graph</h2>
+<p>The Graph may take a moment to be render because th amount of vertex</p>
+<form method="POST">
+<p>Filters</p>
+<ul>
+<li>Institution: 
+<select name="institution">
+ <option value="1" "selected">UNB</option>
+ <option value="2">UFRN</option>
+ <option value="3">USP</option>
+
+</select>
+
+</ul>
+<p><input type="submit" value="Go" /></p>
+</form>
+<script type="text/javascript">
+
+var nodes = {};
+//var jsonURL = "/api.json?inst=" + institution;
+var jsonURL = "/graph.json";
+var links, path;
+
+
+d3.json(jsonURL, function(json) {
+  links = json.children;
+  
+  //Toggle children on click.
+  function click(d) {
+      if (d3.event.defaultPrevented) return; // click suppressed
+
+      centerNode(d);      
+  }  
+  
+	var width = 1440,
+      height = 1028,
+      duration = 750;
+  var zoomable_layer;
+
+	    // Compute the distinct nodes from the links.
+	    links.forEach(function(link) {
+	      link.source = nodes[link.source] || (nodes[link.source] = {name: link.source, size: link.size, type: "source", institution: link.institution});
+	      link.target = nodes[link.target] || (nodes[link.target] = {name: link.target, size: link.size, type: "target"});
+	    });
+	    
+	  //Define the zoom function for the zoomable tree
+/*
+	    function zoom() {
+	        svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	    }
+*/
+	  
+	  	//Function to center node when clicked/dropped so node doesn't get lost when collapsing/moving with large amount of children.
+	    function centerNode(source) {
+	        scale = zoomListener.scale();
+	        x = -source.y0;
+	        y = -source.x0;
+	        x = x * scale + width / 2;
+	        y = y * scale + height / 2;
+	        d3.select('g').transition()
+	            .duration(duration)
+	            .attr("transform", "translate(" + x + "," + y + ")scale(" + scale + ")");
+	        zoomListener.scale(scale);
+	        zoomListener.translate([x, y]);
+	    }
+	  
+	  	//define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
+	    var zoomListener = d3.zoom().scaleExtent([0.1, 3]).on("zoom", function() {
+          return zoomable_layer.attr("transform", d3.event.transform);
+        });
+
+      var fLinks = d3.forceLink(links);
+      fLinks.distance(60);
+	    var force = d3.forceSimulation()
+	        .nodes(d3.values(nodes))
+	        .force("link", fLinks)
+	        //.size([width, height])
+	        //.linkDistance(60)
+	        .force("charge", d3.forceManyBody().strength(-300))
+	        .on("tick", tick);
+
+      
+
+	    var svg = d3.select("body").append("svg")
+	        .attr("width", width)
+	        .attr("height", height)
+	        .call(zoomListener);
+      zoomable_layer = svg.append('g');
+	    
+	 
+	    var link = zoomable_layer
+        .attr("class", "links")
+        .selectAll("path")
+        .data(links)
+        .enter().append("svg:path")
+        .attr("stroke-width", function(d) { return 1 });
+
+      link.style('fill', 'none')
+        .style('stroke', 'black')
+        .style("stroke-width", '2px');
+
+      var node = zoomable_layer
+        .attr("class", "nodes")
+        .selectAll("g")
+        .data(nodes)
+        .enter().append("g")
+        .style('transform-origin', '50% 50%')
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended)
+        );
+  
+      node.append('circle')
+        .attr("r", 30)
+        .attr("fill", "red")
+/*
+        .attr("r", function(d) { return radius(d.value / 2); })
+        .attr("fill", function(d) { return color(d.group); })
+*/
+    
+  
+      node.append("text")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.name; });
+	        
+	    // Use elliptical arc path segments to doubly-encode directionality.
+	    function tick() {
+	      link.attr("d", linkArc);
+	      node.attr("transform", transform);
+	      //text.attr("transform", transform);
+	    }
+	    
+	    function linkArc(d) {
+	      var dx = d.target.x - d.source.x,
+	          dy = d.target.y - d.source.y,
+	          dr = Math.sqrt(dx * dx + dy * dy);
+	      return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+	    }
+
+	    function transform(d) {
+	      return "translate(" + d.x + "," + d.y + ")";
+	    }
+
+      function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+
+      function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+      }
+
+      function dragended(d) {
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
+});
+
+</script>
+
+</body>
+</html>
