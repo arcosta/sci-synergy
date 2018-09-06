@@ -12,10 +12,14 @@ from functools import lru_cache
 
 graph = ''
 
+
 if os.environ.get('GAE_DEPLOYMENT_ID', 'bar') == 'bar':
     print('Using docker stack')
     #graph = Graph(os.getenv('NEO4J_URI'), user='neo4j', password='scisynergy')
-    graph = Graph(os.getenv('NEO4J_URI'))
+    try:
+        graph = Graph(os.getenv('NEO4J_URI'))
+    except IOError as e:
+        print("!! No database available !!")    
 else:
     print('Using foreign database')
     try:
@@ -25,6 +29,8 @@ else:
     except Exception as err:
         print("Graph connection error: ", err)
         graph = ''
+
+    
 
 #FIXME: Dont do this at home
 def fix_code(_str, code):
@@ -118,7 +124,7 @@ class Researcher(object):
         if graph == '':
             return None
         retVal = None
-        for author in graph.find("Author"):
+        for author in graph.nodes.match("Author"):
             if author['userid'] == int(idx):
                 retVal = author
                 
@@ -132,7 +138,7 @@ class Researcher(object):
             return None
         if graph == '':
             return None
-        retVal = graph.find_one('Author', 'name', name)
+        retVal = graph.nodes.match('Author', name=name).first()
         if retVal is not None:
             self.updateInfos(retVal)             
         
@@ -202,7 +208,7 @@ class Institution(object):
     def __init__(self):
         pass
     def getInstitutionsName(self):        
-        return [inst['name'] for inst in graph.find("Institution")]
+        return [inst['name'] for inst in graph.nodes.match("Institution")]
     def institutionInteraction(self):
         query = '''MATCH path=(i1:Institution)-[]-(a1:Author)-[]-(p:Publication)-[]-(a2:Author)-[]-(i2:Institution)
                 WHERE id(i1) > id(i2)
