@@ -15,9 +15,9 @@ graph = ''
 
 if os.environ.get('GAE_DEPLOYMENT_ID', 'bar') == 'bar':
     print('Using docker stack')
-    #graph = Graph(os.getenv('NEO4J_URI'), user='neo4j', password='scisynergy')
     try:
-        graph = Graph(os.getenv('NEO4J_URI'))
+        graph = Graph(os.getenv('NEO4J_URI'), user='neo4j', password='scisynergy')
+        
     except IOError as e:
         print("!! No database available !!")    
 else:
