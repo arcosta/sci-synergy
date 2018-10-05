@@ -23,21 +23,15 @@ else:
     print('Using foreign database')
     try:
         graph = Graph(host='10.158.0.2', user='neo4j', password='scisynergy', bolt=True)
-        # graph = Graph("http://hobby-bidcndeimgoagbkedjkhegkl.dbs.graphenedb.com:24789/db/data",
-        # user='openshiftuser', password='b.f7S3vbVb1bFO.wyLRsA6wEhkOjLUz')
-        # graph = Graph(host=os.getenv("DATAGRAPH_SERVICE_HOST","datagraph.sci-synergy.svc"),
-        # user='neo4j', password='neo4j', bolt=True)
+        
     except Exception as err:
         print("Graph connection error: ", err)
         graph = ''
 
 
-# FIXME: Dont do this at home
-def fix_code(_str, code):
-    if sys.version_info > (2,9):
-        return _str
-    else:
-        return unicode(_str, code)
+def verify_database():
+    if len(graph) == 0:
+        raise "Empty Graph"
 
 
 class Researcher(object):

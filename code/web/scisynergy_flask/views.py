@@ -129,6 +129,11 @@ def autocomplete():
         return json.dumps(area)
 
 
+@app.route('/loaddata', methods=['GET', 'POST'])
+def loaddata():
+    return render_template("load.html")
+
+
 @app.errorhandler(404)
 def page_not_found(error):
     return "A pagina solicitada nao esta disponivel",404
