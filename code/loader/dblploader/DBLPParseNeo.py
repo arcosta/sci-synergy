@@ -32,33 +32,41 @@ logger = logging.getLogger(__name__)
 logHandler = RotatingFileHandler("DBLPImport.log", 'a', maxBytes=5000000, backupCount=10)
 logger.addHandler(logHandler)
 
-URL = CONFIG['dblp.filename']
-graph = Graph(CONFIG['neo4j.url'],
-              username=CONFIG['neo4j.username'],
-              password=CONFIG['neo4j.password'],
+URL = CONFIG['dblp']['filename']
+
+graph = Graph(host=CONFIG['neo4j']['host'],
+              user=CONFIG['neo4j']['username'],
+              password=CONFIG['neo4j']['password'],
               bolt=True
              )
 
-rootRepo = CONFIG["repo.root"]
+cql_available = True
 
-# Create repository of cypher files
-if not os.path.exists(rootRepo):
-    logger.info("Creating repo dir " + rootRepo)
-    os.mkdir(rootRepo)
-else:
-    if os.listdir(rootRepo) is not None:
-        logger.info("Removing old files")
-        shutil.rmtree(rootRepo)
-        logger.info("Recreating repo dir: " + rootRepo)
+rootRepo = CONFIG['repo']['root']
+
+if not cql_available:
+    # Create repository of cypher files
+    if not os.path.exists(rootRepo):
+        logger.info("Creating repo dir " + rootRepo)
         os.mkdir(rootRepo)
+    else:
+        if os.listdir(rootRepo) is not None:
+            logger.info("Removing old files")
+            shutil.rmtree(rootRepo)
+            logger.info("Recreating repo dir: " + rootRepo)
+            os.mkdir(rootRepo)
 
 #================================================================
 def downloadDBLPdump():
-    response = requests.get(CONFIG["dblp.url"])
+    # Skip if xml file already exists
+    if os.path.exists(CONFIG['dblp']['filename']):
+        return
+        
+    response = requests.get(CONFIG['dblp']['url'])
     
     if response.status_code != requests.codes.ok:
         raise IOError("Server response: " + str(response.status_code))
-    with open(CONFIG["dblp.filename"], "wb") as data:
+    with open(CONFIG['dblp']['filename'], "wb") as data:
         for chunk in response.iter_content(chunk_size=128):
             data.write(chunk)
 
@@ -67,41 +75,49 @@ def loadAuthorFilter():
     """
     @return A list of author names
     """
-    profList = list()
-    
-    filterFiles = ['docentes-unb.json',
-                   'docentes-ufmg.json',
-                   'docentes-ufrn.json',
-                   'docentes-usp.json',
-                   'docentes-ufam.json']
+    if cql_available:
+        with open("seeds.cql", 'r', encoding='UTF-8') as seed:
+            while True:
+                line = seed.readline()
+                if line is None:
+                    break
+                graph.run(line)
+    else:        
+        profList = list()
+        
+        filterFiles = ['docentes-unb.json',
+                       'docentes-ufmg.json',
+                       'docentes-ufrn.json',
+                       'docentes-usp.json',
+                       'docentes-ufam.json']
 
-    
-    
-    for j in filterFiles:
-        print("Loading filter %s" % j)
-        instName = j.split('.')[0].split('-')[1]
+        
+        
+        for j in filterFiles:
+            print("Loading filter %s" % j)
+            instName = j.split('.')[0].split('-')[1]
 
-        institution = graph.find_one("Institution", property_key='name',
-                                     property_value=instName)
-        if institution is None:
-            institution = Node("Institution", name=instName)
-            for p in json.load(open(j, 'r', encoding='latin-1')):
-                if p is not None:
-                    author = Node("Author", name=p['name'],
-                                  lattesurl=p['lattesurl'])
-                    
-                    graph.create(author)
-                    graph.create(Relationship(author, "ASSOCIATED TO", institution))
-                    #del author
-                    profList.append(author)
-                    
-        else:
-            print("\tFilter load SKIPPED")
-            for rel in institution.match(rel_type='ASSOCIATED TO'):
-                profList.append(rel.start_node())
-        del institution
-    
-    return profList
+            institution = graph.find_one("Institution", property_key='name',
+                                         property_value=instName)
+            if institution is None:
+                institution = Node("Institution", name=instName)
+                for p in json.load(open(j, 'r', encoding='latin-1')):
+                    if p is not None:
+                        author = Node("Author", name=p['name'],
+                                      lattesurl=p['lattesurl'])
+                        
+                        graph.create(author)
+                        graph.create(Relationship(author, "ASSOCIATED TO", institution))
+                        #del author
+                        profList.append(author)
+                        
+            else:
+                print("\tFilter load SKIPPED")
+                for rel in institution.match(rel_type='ASSOCIATED TO'):
+                    profList.append(rel.start_node())
+            del institution
+        
+        return profList
 
 def removeAccents(data):
     """Remove accents from input string"""
