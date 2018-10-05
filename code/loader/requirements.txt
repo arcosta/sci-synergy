@@ -1,3 +1,5 @@
 py2neo==3.1
 matplotlib==2.0
-numpy=1.12
+numpy==1.12
+nltk==3.3
+requests==2.19.1
