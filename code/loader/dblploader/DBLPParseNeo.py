@@ -1,5 +1,5 @@
 """Script to import data from dblp xml to neo4j graph database"""
-from xml.sax import make_parser
+from xml.sax import make_parser, handler
 import gzip
 import time
 import datetime
@@ -27,12 +27,13 @@ with open("configloader.json") as configFile:
     CONFIG = json.load(configFile)
 
 FORMAT = '%(asctime)-15s %(threadName)s:  %(message)s'
-#logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.INFO, filename="DBLPImport.log")
 logger = logging.getLogger(__name__)
-logHandler = RotatingFileHandler("DBLPImport.log", 'a', maxBytes=5000000, backupCount=10)
-logger.addHandler(logHandler)
+#logHandler = RotatingFileHandler("DBLPImport.log", 'a', maxBytes=5000000, backupCount=10)
+#logger.addHandler(logHandler)
+#logger.setLevel('INFO')
 
-URL = CONFIG['dblp']['filename']
+URL = CONFIG['dblp']['gzfile']
 
 graph = Graph(host=CONFIG['neo4j']['host'],
               user=CONFIG['neo4j']['username'],
@@ -59,16 +60,22 @@ if not cql_available:
 #================================================================
 def downloadDBLPdump():
     # Skip if xml file already exists
-    if os.path.exists(CONFIG['dblp']['filename']):
+    if os.path.exists(URL):
+        logger.info("Xml database already exists, skipping download")
         return
         
-    response = requests.get(CONFIG['dblp']['url'])
-    
-    if response.status_code != requests.codes.ok:
-        raise IOError("Server response: " + str(response.status_code))
-    with open(CONFIG['dblp']['filename'], "wb") as data:
-        for chunk in response.iter_content(chunk_size=128):
-            data.write(chunk)
+    for file in [CONFIG['dblp']['dtdfile'], CONFIG['dblp']['gzfile']]:
+        logger.info("Starting download of " + CONFIG['dblp']['url'] + file)
+        
+        response = requests.get(CONFIG['dblp']['url'] + file)
+        
+        if response.status_code != requests.codes.ok:
+            raise IOError("Server response: " + str(response.status_code))
+        with open(file, "wb", buffering=0) as data:
+            for chunk in response.iter_content(chunk_size=128):
+                data.write(chunk)
+        
+        logger.info("Download of " + file + " finished")
 
 #================================================================
 def loadAuthorFilter():
@@ -79,9 +86,10 @@ def loadAuthorFilter():
         with open("seeds.cql", 'r', encoding='UTF-8') as seed:
             while True:
                 line = seed.readline()
-                if line is None:
+                if line is None or len(line) == 0:
                     break
                 graph.run(line)
+                line = ''
     else:        
         profList = list()
         
@@ -89,9 +97,7 @@ def loadAuthorFilter():
                        'docentes-ufmg.json',
                        'docentes-ufrn.json',
                        'docentes-usp.json',
-                       'docentes-ufam.json']
-
-        
+                       'docentes-ufam.json']        
         
         for j in filterFiles:
             print("Loading filter %s" % j)
@@ -237,7 +243,7 @@ def main(source):
         process.start()
 
     source = gzip.open(source, mode='rt', encoding='latin-1')
-    parser = make_parser()
+    parser = make_parser()    
     parser.setContentHandler(DBLPContentHandler(queue))
     parser.parse(source)
 
