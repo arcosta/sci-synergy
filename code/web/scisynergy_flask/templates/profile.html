@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Users profile{% endblock %}
+{% block title %}{{user.name}}{% endblock %}
 
 {%block head%}
 {{super()}}
 {%endblock%}
 
 {%block content%}
-<h1>{{user.name}}</h1>
+<h2>{{user.name}}</h2>
 
 {% if user.lattesurl is not none %}
 <p>Lattes currculum: <a href="{{user.lattesurl}}">{{user.lattesurl}}</a></p>
 {% endif %}
 <hr>
 
-<p>Areas of interest</p>
+<p><span style="font-weight:bold">Areas of interest</span></p>
 {%if user.bagofareas is not none %}
 <ul>
 {% for area in user.bagofareas %}
@@ -34,7 +34,7 @@
 	</ul>
 {%endif%}
 
-<p>Publications</p>
+<p><span style="font-weight:bold">Publications<span></p>
 
 <p><a onclick="javascript:history.back()">Back</a></p>
 {% endblock %}

@@ -5,6 +5,7 @@ Created on 20/04/2016
 """
 
 from py2neo import Graph
+from py2neo.matching import RelationshipMatch
 import os
 import sys
 from functools import lru_cache
@@ -66,8 +67,7 @@ class Researcher(object):
                 author['userid'] = int(authorid)
                 graph.push(author)
             else:
-                authorid = author.get('userid')
-            
+                authorid = author.get('userid')            
             
             #TODO: Remove stopwords
             for token in name.split():
@@ -84,6 +84,7 @@ class Researcher(object):
         Researcher.index_initialized = True
         return invertedIndex
 
+        
     def updateInfos(self, remoteNode):
         """
         @desc Update user informations fetched from database
@@ -93,8 +94,10 @@ class Researcher(object):
         self.lattesurl = remoteNode['lattesurl']
         self.userid = remoteNode['userid']
         self.recomendation = list()
-        for rec in remoteNode.match_outgoing("RECOMMENDATION"):
-            recArea = rec.properties.get('area')
+        
+        #for rec in remoteNode.match_outgoing("RECOMMENDATION"):
+        for rec in RelationshipMatch(graph, nodes=[remoteNode], r_type="RECOMMENDATION"):
+            recArea = rec.get('area')
             
             recStr = rec.end_node['name']
             institution = ''            
@@ -111,7 +114,8 @@ class Researcher(object):
                 recStr += " - Area: " + recArea
                 
             self.recomendation.append(recStr)
-        
+
+            
     def find(self, idx = 0):
         if idx is None or idx == 0:
             return None

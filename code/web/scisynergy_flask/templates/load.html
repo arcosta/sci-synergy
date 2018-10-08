@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Load data from DBLP{% endblock %}
+
+{%block head%}
+{{super()}}
+{%endblock%}
+
+{%block content%}
+<p>An ampty database were detected. We need to load fresh data from DBLP url.</p>
+<form method="post">
+<p>Enter DBLP XML file url:<input type="text" id="dblpurl" /></p>
+<p><input type="submit" value="Enviar"</p>
+</form>
+{% endblock %}
