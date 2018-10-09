@@ -83,7 +83,7 @@ def loadAuthorFilter():
     @return A list of author names
     """
     if cql_available:
-        with open("seeds.cql", 'r', encoding='UTF-8') as seed:
+        with open("seeds.cql", 'r', encoding='latin-1') as seed:
             while True:
                 line = seed.readline()
                 if line is None or len(line) == 0:
@@ -162,14 +162,14 @@ def createCypherFiles(queue):
 
         title = pubAttrs.get("title")
         pubKey = uuid.uuid4().__str__()
-        logger.info("New publication title: %s" % title.encode('utf-8', errors='ignore'))
+        logger.info("New publication title: %s" % title.encode('latin-1', errors='ignore'))        
         query = ''
 
         for aName in pubAttrs["author"]:
             query += "MATCH (a:Author {name: '%s})' \n" % aName
             query += "MATCH (p:Publication {title: '%s'}) \n" % title
             query += "MERGE (a)-[r:AUTHORING]->(p)\n"
-        with open(os.path.join(rootRepo, pubKey)+'.cypher', 'w', encoding='utf-8') as output:
+        with open(os.path.join(rootRepo, pubKey)+'.cypher', 'w', encoding='latin-1') as output:
             output.write(query)
 
 
