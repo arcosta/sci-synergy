@@ -94,8 +94,7 @@ class Researcher(object):
         self.lattesurl = remoteNode['lattesurl']
         self.userid = remoteNode['userid']
         self.recomendation = list()
-        
-        #for rec in remoteNode.match_outgoing("RECOMMENDATION"):
+
         for rec in RelationshipMatch(graph, nodes=[remoteNode], r_type="RECOMMENDATION"):
             recArea = rec.get('area')
             
@@ -146,6 +145,16 @@ class Researcher(object):
 class Publication(object):
     def __init__(self):
         pass
+        
+        
+    def find_by_author(author):
+        publications = list()
+        for rel in RelationshipMatch(graph, nodes=[author], r_type="AUTHORING"):
+            (a,r,p) = rel.walk()
+            publications.append(p)
+        return publications
+        
+        
 
     def colorcode(self, inst):
         colormap = {'ufrn':'blue',
@@ -155,6 +164,7 @@ class Publication(object):
                     'ufmg': 'black'
                     }
         return colormap.get(inst, 'yellow')
+        
         
     def relationCoauthoring(self, institution=None):
         queryRelations = '''MATCH 
