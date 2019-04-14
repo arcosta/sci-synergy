@@ -1,4 +1,4 @@
-Jinja2==2.8
+Jinja2
 Flask==0.12.3
 Paver==1.2.2
 beautifulsoup4==4.3.2
