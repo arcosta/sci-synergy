@@ -1,5 +1,5 @@
 Jinja2
-Flask==0.12.3
+Flask==1.1.1
 Paver==1.2.2
 beautifulsoup4==4.3.2
 mechanize==0.2.5
