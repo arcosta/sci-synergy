@@ -2,6 +2,6 @@ Jinja2
 Flask==1.1.1
 Paver==1.2.2
 beautifulsoup4==4.3.2
-mechanize==0.2.5
+mechanize==0.4.6
 virtualenv==1.11.6
 py2neo==4.1.0
